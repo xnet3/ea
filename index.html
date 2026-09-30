@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f6f8fc">
+<title>איחוד הצלה - הודעות</title>
+<link rel="icon" href="https://1221.org.il/app/uploads/2018/11/%D7%A1%D7%9E%D7%9C-%D7%9C%D7%95%D7%92%D7%95-%D7%90%D7%99%D7%97%D7%95%D7%93-%D7%94%D7%A6%D7%9C%D7%94--450x450.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow-anchor: none; }
+
+:root {
+  --bg: #f6f8fc;
+  --card-bg: #ffffff;
+  --text: #1e2533;
+  --muted: #667085;
+  --border: #e8ecf3;
+  --accent: #4478ea;
+  --accent-strong: #2f5fd0;
+  --accent-soft: #eaf1ff;
+  --accent-glow: rgba(68,120,234,.16);
+  --signature-bg: #f0f3f9;
+  --action-hover: #e8eefb;
+  --shadow-card: 0 1px 2px rgba(30,37,51,.04), 0 4px 14px rgba(30,37,51,.04);
+  --shadow-hover: 0 8px 28px rgba(30,37,51,.08);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --font: 'IBM Plex Sans Hebrew', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: var(--accent-soft); color: var(--accent-strong); }
+svg { stroke-linecap: round; stroke-linejoin: round; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── TOP BARS (header + toolbar) — slide away on scroll down, return on scroll up ── */
+#topbars {
+  position: sticky; top: 0; z-index: 100;
+  transition: transform .32s cubic-bezier(.4, 0, .2, 1);
+  will-change: transform;
+}
+#topbars.hidden { transform: translateY(-100%); }
+
+/* ── HEADER ── */
+#header {
+  height: 60px; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: rgba(255,255,255,.86);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+/* Brand (logo + name): fixed on the right, so it stays on the feed when the bars slide away */
+#brand {
+  position: fixed; z-index: 110;
+  top: 0; right: 24px; height: 60px;
+  display: flex; align-items: center; gap: 11px;
+  padding-inline: 0;
+  border: 1px solid transparent; border-radius: 999px; background: transparent;
+  font-size: 19px; font-weight: 700; letter-spacing: -.4px;
+  max-width: calc(100vw - 32px);
+  transition: top .32s cubic-bezier(.4, 0, .2, 1), right .32s cubic-bezier(.4, 0, .2, 1),
+              height .32s cubic-bezier(.4, 0, .2, 1), padding .32s cubic-bezier(.4, 0, .2, 1),
+              background .3s, border-color .3s, box-shadow .3s;
+}
+body.bars-hidden #brand {
+  top: 8px; right: 14px; height: 46px;
+  padding-inline: 5px 16px;
+  background: rgba(255,255,255,.94);
+  -webkit-backdrop-filter: saturate(180%) blur(14px); backdrop-filter: saturate(180%) blur(14px);
+  border-color: var(--border);
+  box-shadow: var(--shadow-card);
+}
+#header-logo {
+  width: 36px; height: 36px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0;
+  border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border);
+  background: var(--accent-soft);
+}
+#brand span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#status-pill {
+  margin-inline-start: auto; /* brand is fixed, so push the pill to the far side */
+  display: flex; align-items: center; gap: 7px;
+  height: 34px; padding: 0 13px 0 12px;
+  border: 1px solid var(--border); background: #fff; border-radius: 999px;
+  flex-shrink: 0;
+  transition: background .2s, border-color .2s;
+}
+#status-dot { width: 7px; height: 7px; border-radius: 50%; background: #98a2b3; flex-shrink: 0; }
+#status-dot.pulse { animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(18,183,106,.4); }
+  50% { box-shadow: 0 0 0 4px rgba(18,183,106,0); }
+}
+#status-text { font-size: 12.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+#status-pill.ok { background: #ecfdf3; border-color: #c7f0d8; }
+#status-pill.ok #status-dot { background: #12b76a; }
+#status-pill.ok #status-text { color: #067647; }
+#status-pill.err { background: #fef3f2; border-color: #fdd3ce; }
+#status-pill.err #status-dot { background: #f04438; }
+#status-pill.err #status-text { color: #b42318; }
+
+/* ── TOOLBAR (search + filters) ── */
+#toolbar {
+  background: rgba(246,248,252,.92);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+.tb-wrap { max-width: 700px; margin: 0 auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+#search-wrap {
+  display: flex; align-items: center; gap: 10px;
+  height: 46px; padding: 0 16px;
+  background: #fff; border: 1.5px solid var(--border); border-radius: 999px;
+  color: var(--muted); box-shadow: var(--shadow-card);
+  transition: border-color .15s, box-shadow .15s, color .15s;
+}
+#search-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); color: var(--accent); }
+#q { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font: 500 16px var(--font); color: var(--text); }
+#q::placeholder { color: var(--muted); font-weight: 400; }
+#q::-webkit-search-cancel-button { display: none; }
+#clr {
+  display: none; width: 26px; height: 26px; border: none; border-radius: 50%;
+  background: var(--signature-bg); color: var(--muted); cursor: pointer;
+  align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+#clr:hover { background: var(--action-hover); color: var(--text); }
+#search-wrap.has-value #clr { display: flex; }
+
+#chips { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; }
+#chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px;
+  height: 34px; padding: 0 15px; border-radius: 999px;
+  border: 1px solid var(--border); background: #fff; color: var(--muted);
+  font: 500 13.5px var(--font); white-space: nowrap; cursor: pointer;
+  transition: all .15s;
+}
+.chip svg { width: 16px; height: 16px; }
+.chip:hover { background: var(--action-hover); color: var(--text); }
+.chip.active { background: var(--accent-soft); border-color: #c9daff; color: var(--accent-strong); font-weight: 600; }
+
+/* ── FEED ── */
+#feed {
+  max-width: 700px; margin: 0 auto;
+  padding: 22px 16px 100px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.date-divider {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0 2px;
+  color: var(--muted); font-size: 12.5px; font-weight: 600; letter-spacing: .3px;
+}
+.date-divider::before, .date-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── MESSAGE CARD ── */
+.msg-card { display: flex; align-items: flex-start; gap: 12px; position: relative; scroll-margin-top: 150px; }
+.msg-avatar-col { flex-shrink: 0; padding-top: 22px; }
+.avatar, .avatar-placeholder { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
+.avatar { display: block; object-fit: cover; background: #fff; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); }
+.avatar-placeholder {
+  display: none; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent-strong);
+  font-size: 18px; font-weight: 600;
+}
+.msg-main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.msg-meta { display: flex; align-items: baseline; gap: 8px; padding: 0 4px; flex-wrap: wrap; }
+.msg-channel { font-size: 14.5px; font-weight: 600; letter-spacing: -.1px; }
+.msg-time { font-size: 12px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+.msg-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11.5px; font-weight: 600; color: var(--accent-strong);
+  background: var(--accent-soft); border-radius: 999px; padding: 1px 9px;
+}
+
+.msg-bubble {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 20px 10px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow .2s, border-color .2s;
+}
+.msg-card:hover .msg-bubble { border-color: #d9e2f3; box-shadow: var(--shadow-hover); }
+.msg-text { font-size: 16px; line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+.msg-text a { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; overflow-wrap: anywhere; word-break: normal; }
+.msg-text a:hover { color: var(--accent); text-decoration-thickness: 2px; }
+mark.hl { background: #ffe98a; color: inherit; border-radius: 4px; padding: 1px 2px; margin: 0 -1px; }
+
+.msg-image-wrap { position: relative; margin-top: 12px; display: block; }
+.msg-image {
+  display: block; max-width: 100%; max-height: 360px; object-fit: cover;
+  border-radius: 14px; cursor: pointer; background: var(--signature-bg);
+  transition: opacity .2s;
+}
+.msg-image:hover { opacity: .93; }
+
+.msg-actions { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 10px; margin-inline-start: -8px; align-items: center; }
+.action-btn {
+  position: relative; width: 34px; height: 34px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 50%; background: transparent; color: var(--muted);
+  cursor: pointer; text-decoration: none; transition: all .15s;
+}
+.action-btn svg { width: 17px; height: 17px; }
+.action-btn:hover { background: var(--accent-soft); color: var(--accent-strong); }
+.action-btn.copied { background: #dcfce7; color: #15803d; }
+.action-btn::after {
+  content: attr(data-tooltip);
+  position: absolute; bottom: calc(100% + 8px); right: 50%; transform: translateX(50%);
+  background: var(--text); color: #fff; font-size: 12px; font-weight: 600; white-space: nowrap;
+  padding: 5px 11px; border-radius: 7px; opacity: 0; pointer-events: none;
+  transition: opacity .15s; z-index: 10;
+}
+.action-btn:hover::after { opacity: 1; }
+
+.msg-card.msg-highlight .msg-bubble { animation: highlightFade 4s ease forwards; }
+@keyframes highlightFade {
+  0%, 50% { box-shadow: 0 0 0 3px var(--accent), 0 10px 34px rgba(68,120,234,.2); }
+  100% { box-shadow: var(--shadow-card); }
+}
+
+/* ── STATES ── */
+.state { text-align: center; padding: 80px 20px; color: var(--muted); font-size: 15px; line-height: 1.9; }
+.state b { display: block; color: var(--text); font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.spinner {
+  width: 26px; height: 26px; margin: 0 auto 16px;
+  border: 2.5px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .65s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.more-btn {
+  display: block; width: 100%; margin-top: 4px; padding: 12px;
+  border: none; border-radius: var(--radius-sm);
+  background: var(--accent-soft); color: var(--accent-strong);
+  font: 700 13.5px var(--font); cursor: pointer; transition: background .15s;
+}
+.more-btn:hover { background: #dde8ff; }
+
+/* ── FLOATING BUTTON / TOAST / LIGHTBOX ── */
+#top-btn {
+  display: none; position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  align-items: center; gap: 7px; padding: 10px 22px;
+  background: var(--card-bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 999px;
+  font: 700 14px var(--font); cursor: pointer; z-index: 80; white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(30,37,51,.12); transition: all .15s;
+}
+#top-btn.visible { display: flex; }
+#top-btn:hover, #top-btn.has-new { background: var(--accent); color: #fff; border-color: var(--accent); }
+#top-btn.has-new:hover { background: var(--accent-strong); }
+
+#toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(10px);
+  background: var(--text); color: #fff; padding: 10px 20px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none;
+  transition: all .25s; white-space: nowrap; z-index: 200;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+#lightbox {
+  display: flex; position: fixed; inset: 0; z-index: 999;
+  align-items: center; justify-content: center; cursor: pointer;
+  background: rgba(10,11,15,.92); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .16s ease-out, visibility 0s linear .16s;
+}
+#lightbox.open {
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transition: opacity .16s ease-out, visibility 0s;
+}
+#lightbox img {
+  max-width: 92vw; max-height: 92vh; border-radius: 14px; box-shadow: 0 30px 90px rgba(0,0,0,.5);
+  transform: scale(.92); opacity: 0;
+  transition: transform .14s ease-in, opacity .12s ease-in;
+}
+#lightbox.open img {
+  transform: scale(1); opacity: 1;
+  transition: transform .2s cubic-bezier(.2, .9, .3, 1), opacity .16s ease-out;
+}
+
+/* ── MOBILE ── */
+@media (hover: none) { .action-btn::after { display: none; } }
+@media (max-width: 640px) {
+  #header { padding: 0 16px; }
+  #brand { right: 16px; font-size: 17px; }
+  body.bars-hidden #brand { right: 10px; }
+  .tb-wrap { padding: 10px 12px; }
+  #search-wrap { height: 44px; }
+  #feed { padding: 16px 12px 100px; gap: 14px; }
+  .msg-card { gap: 8px; }
+  .msg-avatar-col { padding-top: 24px; }
+  .avatar, .avatar-placeholder { width: 36px; height: 36px; font-size: 15px; }
+  .msg-bubble { padding: 14px 15px 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="brand">
+  <img id="header-logo" src="https://1221.org.il/app/uploads/2018/11/%D7%A1%D7%9E%D7%9C-%D7%9C%D7%95%D7%92%D7%95-%D7%90%D7%99%D7%97%D7%95%D7%93-%D7%94%D7%A6%D7%9C%D7%94--450x450.png" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">
+  <span>איחוד הצלה</span>
+</div>
+
+<div id="topbars">
+<div id="header">
+  <div id="status-pill">
+    <span id="status-dot"></span>
+    <span id="status-text">טוען...</span>
+  </div>
+</div>
+
+<div id="toolbar">
+  <div class="tb-wrap">
+    <div id="search-wrap">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="q" type="search" placeholder="חיפוש בהודעות" autocomplete="off" enterkeyhint="search" aria-label="חיפוש בהודעות">
+      <button id="clr" type="button" aria-label="נקה חיפוש">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="chips">
+      <button type="button" class="chip active" data-f="all">הכל</button>
+      <button type="button" class="chip" data-f="video">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5.5 3.5-5.5 3.5z" fill="currentColor"/></svg>
+        וידאו
+      </button>
+      <button type="button" class="chip" data-f="image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        תמונות
+      </button>
+    </div>
+  </div>
+</div>
+</div><!-- /#topbars -->
+
+<div id="feed"><div class="state"><div class="spinner"></div>טוען הודעות...</div></div>
+
+<button id="top-btn" type="button">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
+  <span id="top-label">חזרה למעלה</span>
+</button>
+<div id="toast"></div>
+<div id="lightbox"><img id="lightbox-img" alt=""></div>
+
+<script>
+(function(){
+  var SHEET_ID = '113jTdJHR78s_PmIH2TznEz0iyCZyAS2N1VtAWGVkck0';
+  var SHEET_NAME = 'איחוד הצלה';
+  var CHANNEL = 'איחוד הצלה';
+  var LOGO = 'https://1221.org.il/app/uploads/2018/11/%D7%A1%D7%9E%D7%9C-%D7%9C%D7%95%D7%92%D7%95-%D7%90%D7%99%D7%97%D7%95%D7%93-%D7%94%D7%A6%D7%9C%D7%94--450x450.png';
+  var PAGE = 30, REFRESH_MS = 120000;
+
+  var all = [], shown = PAGE, query = '', filter = 'all', updated = null, knownTop = 0, newCount = 0;
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ── data ── */
+  function fetchSheet(){
+    return new Promise(function(res, rej){
+      var cb = '__g' + Date.now(), s = document.createElement('script');
+      var t = setTimeout(function(){ done(); rej(new Error('timeout')); }, 15000);
+      function done(){ clearTimeout(t); delete window[cb]; s.remove(); }
+      window[cb] = function(d){ done(); d.status === 'error' ? rej(new Error('query')) : res(d); };
+      s.onerror = function(){ done(); rej(new Error('load')); };
+      s.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(SHEET_NAME) +
+        '&headers=1&tqx=out:json;responseHandler:' + cb + '&_=' + Date.now();
+      document.head.appendChild(s);
+    });
+  }
+  function v(c){ return c && c.v != null ? c.v : null; }
+  function pDate(x){
+    if (typeof x !== 'string') return null;
+    var m = x.match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?/);
+    return m ? new Date(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)) : null;
+  }
+  function parse(d){
+    return d.table.rows.map(function(r){
+      var c = r.c || [];
+      // עדיפות לעמודה H (חותמת זמן במילישניות); אחרת עמודה B
+      var ts = v(c[7]), d = null, known = false;
+      if (ts != null && !isNaN(+ts) && +ts > 0){ d = new Date(+ts); known = true; }
+      else {
+        d = pDate(v(c[1]));
+        known = !!d && (d.getHours() || d.getMinutes() || d.getSeconds());
+      }
+      return { id: +v(c[0]), date: d, hasTime: !!known, text: String(v(c[3]) || v(c[2]) || ''),
+               image: v(c[4]) || '', video: !!v(c[5]), link: v(c[6]) || '' };
+    }).filter(function(m){ return m.id; }).sort(function(a, b){ return b.id - a.id; });
+  }
+
+  /* ── utils ── */
+  function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function reEsc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function richText(s, q){
+    var html = esc(s).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]"'])/g, function(u){
+      return '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + u + '</a>';
+    });
+    if (q){
+      var re = new RegExp('(' + reEsc(esc(q)) + ')', 'g');
+      html = html.split(/(<[^>]+>)/).map(function(p){
+        return p.charAt(0) === '<' ? p : p.replace(re, '<mark class="hl">$1</mark>');
+      }).join('');
+    }
+    return html;
+  }
+  function fmtTime(d){ return d ? d.toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit' }) : ''; }
+  function dayKey(d){ return d ? d.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' }) : ''; }
+
+  function toast(msg){
+    var t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('show'); }, 2000);
+  }
+  var ICON = {
+    link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+    open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>',
+    play: '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 12 7-12 7z"/></svg>'
+  };
+  function copyTo(btn, text, msg, icon){
+    function ok(){
+      btn.classList.add('copied'); btn.innerHTML = ICON.check; toast(msg);
+      setTimeout(function(){ btn.classList.remove('copied'); btn.innerHTML = icon; }, 2000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(ok, function(){});
+    } else {
+      var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
+      ta.select(); try { document.execCommand('copy'); ok(); } catch(e){} ta.remove();
+    }
+  }
+
+  /* ── render ── */
+  function visible(){
+    var q = query.trim();
+    return all.filter(function(m){
+      if (filter === 'video' && !m.video) return false;
+      if (filter === 'image' && !m.image) return false;
+      return !q || m.text.indexOf(q) > -1;
+    });
+  }
+
+  function card(m, q){
+    var html = '<article class="msg-card" id="msg-' + m.id + '" data-id="' + m.id + '">' +
+      '<div class="msg-avatar-col">' +
+        '<img class="avatar" src="' + LOGO + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+        '<div class="avatar-placeholder">א</div>' +
+      '</div>' +
+      '<div class="msg-main-col">' +
+        '<div class="msg-meta">' +
+          '<span class="msg-channel">' + esc(CHANNEL) + '</span>' +
+          (m.hasTime ? '<span class="msg-time">' + fmtTime(m.date) + '</span>' : '') +
+          (m.video ? '<span class="msg-tag">' + ICON.play + 'וידאו</span>' : '') +
+        '</div>' +
+        '<div class="msg-bubble">' +
+          (m.text ? '<div class="msg-text">' + richText(m.text, q) + '</div>' : '') +
+          (m.image ? '<div class="msg-image-wrap"><img class="msg-image" loading="lazy" referrerpolicy="no-referrer" src="' + esc(m.image) + '" alt="תמונה" onerror="this.parentNode.remove()"></div>' : '') +
+          '<div class="msg-actions">' +
+            '<button type="button" class="action-btn" data-act="link" data-tooltip="העתק קישור להודעה">' + ICON.link + '</button>' +
+            (m.link ? '<a class="action-btn" href="' + esc(m.link) + '" target="_blank" rel="noopener noreferrer" data-tooltip="פתח במקור">' + ICON.open + '</a>' : '') +
+            (m.text ? '<button type="button" class="action-btn" data-act="copy" data-tooltip="העתק טקסט">' + ICON.copy + '</button>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div></article>';
+    return html;
+  }
+
+  function render(){
+    var q = query.trim(), rows = visible(), box = $('feed');
+    if (!rows.length){
+      box.innerHTML = '<div class="state"><b>' + (q || filter !== 'all' ? 'לא נמצאו הודעות' : 'אין הודעות להצגה') + '</b>' +
+        (q || filter !== 'all' ? 'נסו מילת חיפוש או סינון אחר.' : 'ההודעות יופיעו כאן ברגע שיתווספו לגיליון.') + '</div>';
+      return;
+    }
+    var out = '', prev = null;
+    rows.slice(0, shown).forEach(function(m){
+      var k = dayKey(m.date);
+      if (k && k !== prev){ out += '<div class="date-divider">' + k + '</div>'; prev = k; }
+      out += card(m, q);
+    });
+    if (rows.length > shown) out += '<button type="button" class="more-btn" id="more">הצגת הודעות נוספות (' + (rows.length - shown) + ')</button>';
+    box.innerHTML = out;
+  }
+
+  function setStat(ok){
+    var pill = $('status-pill');
+    if (!pill) return;
+    pill.classList.toggle('ok', ok); pill.classList.toggle('err', !ok);
+    $('status-dot').classList.toggle('pulse', ok);
+    $('status-text').textContent = ok
+      ? all.length + ' הודעות · ' + updated.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+      : 'אין חיבור';
+  }
+
+  function load(first){
+    fetchSheet().then(function(d){
+      var fresh = parse(d), top = fresh.length ? fresh[0].id : 0;
+      if (!first && knownTop){
+        var added = fresh.filter(function(m){ return m.id > knownTop; }).length;
+        if (added && window.scrollY > 300){ newCount += added; showTop(); }
+      }
+      if (top > knownTop) knownTop = top;
+      all = fresh; updated = new Date(); setStat(true); render();
+      if (first) scrollToLinked();
+    }).catch(function(){
+      setStat(false);
+      if (first || !all.length){
+        $('feed').innerHTML = '<div class="state"><b>לא ניתן לטעון את ההודעות</b>ודאו שהגיליון משותף עם "כל מי שיש לו את הקישור" בהרשאת צפייה, ושהלשונית נקראת "' + esc(SHEET_NAME) + '".</div>';
+      }
+    });
+  }
+
+  /* ── deep link ── */
+  function scrollToLinked(){
+    var h = location.hash;
+    if (h.indexOf('#msg-') !== 0) return;
+    var id = +h.slice(5);
+    var idx = visible().findIndex(function(m){ return m.id === id; });
+    if (idx < 0) return;
+    if (idx >= shown){ shown = idx + 1; render(); }
+    var el = document.getElementById('msg-' + id);
+    if (!el) return;
+    el.scrollIntoView({ block: 'center' });
+    el.classList.add('msg-highlight');
+    setTimeout(function(){ el.classList.remove('msg-highlight'); }, 4500);
+  }
+
+  /* ── floating button ── */
+  function showTop(){
+    var b = $('top-btn'); b.classList.add('visible');
+    if (newCount){ b.classList.add('has-new'); $('top-label').textContent = newCount + ' הודעות חדשות'; }
+  }
+  function checkScroll(){
+    var b = $('top-btn');
+    if (window.scrollY > 600) showTop();
+    else { b.classList.remove('visible', 'has-new'); newCount = 0; $('top-label').textContent = 'חזרה למעלה'; }
+  }
+
+  /* ── events ── */
+  if ($('q')) $('q').addEventListener('input', function(){
+    query = this.value; shown = PAGE;
+    $('search-wrap').classList.toggle('has-value', !!query);
+    render();
+  });
+  if ($('clr')) $('clr').onclick = function(){
+    $('q').value = ''; query = ''; shown = PAGE;
+    $('search-wrap').classList.remove('has-value'); render(); $('q').focus();
+  };
+  if ($('chips')) $('chips').addEventListener('click', function(e){
+    var b = e.target.closest('.chip'); if (!b) return;
+    filter = b.getAttribute('data-f'); shown = PAGE;
+    Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(c){ c.classList.toggle('active', c === b); });
+    render();
+  });
+  $('feed').addEventListener('click', function(e){
+    if (e.target.closest('#more')){ shown += PAGE; render(); return; }
+    var img = e.target.closest('.msg-image');
+    if (img){ $('lightbox-img').src = img.src; $('lightbox').classList.add('open'); return; }
+    var btn = e.target.closest('.action-btn[data-act]'); if (!btn) return;
+    var id = +btn.closest('.msg-card').getAttribute('data-id');
+    var m = all.find(function(x){ return x.id === id; }); if (!m) return;
+    if (btn.getAttribute('data-act') === 'link')
+      copyTo(btn, location.href.split('#')[0] + '#msg-' + id, 'קישור להודעה הועתק', ICON.link);
+    else
+      copyTo(btn, m.text, 'הטקסט הועתק', ICON.copy);
+  });
+  $('lightbox').onclick = function(){ this.classList.remove('open'); };
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') $('lightbox').classList.remove('open');
+    else if (e.key === '/' && $('q') && document.activeElement !== $('q')){ e.preventDefault(); $('q').focus(); }
+  });
+  $('top-btn').onclick = function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); newCount = 0; };
+  window.addEventListener('scroll', checkScroll, { passive: true });
+
+  /* hide top bars while scrolling down, reveal on scroll up */
+  var lastY = window.scrollY, ticking = false;
+  function updateBars(){
+    var bars = $('topbars'), y = Math.max(0, window.scrollY), dy = y - lastY;
+    if (y < 80){ setBars(true); lastY = y; }
+    else if (dy > 6){
+      if (!bars.contains(document.activeElement)) setBars(false);
+      lastY = y;
+    } else if (dy < -6){ setBars(true); lastY = y; }
+    ticking = false;
+  }
+  function setBars(show){
+    $('topbars').classList.toggle('hidden', !show);
+    document.body.classList.toggle('bars-hidden', !show);
+  }
+  window.addEventListener('scroll', function(){
+    if (!ticking){ ticking = true; requestAnimationFrame(updateBars); }
+  }, { passive: true });
+  if ($('q')) $('q').addEventListener('focus', function(){ setBars(true); });
+
+  load(true);
+  setInterval(function(){ load(false); }, REFRESH_MS);
+})();
+</script>
+</body>
+</html>
