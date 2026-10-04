@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f6f8fc">
-<title>איחוד הצלה - הודעות</title>
-<link rel="icon" href="https://1221.org.il/app/uploads/2018/11/%D7%A1%D7%9E%D7%9C-%D7%9C%D7%95%D7%92%D7%95-%D7%90%D7%99%D7%97%D7%95%D7%93-%D7%94%D7%A6%D7%9C%D7%94--450x450.png">
+<title>כוחות הביטחון וההצלה</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link id="favicon" rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -45,7 +46,7 @@ body {
 svg { stroke-linecap: round; stroke-linejoin: round; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ── TOP BARS (header + toolbar) — slide away on scroll down, return on scroll up ── */
+/* ── TOP BARS (header + toolbar) - slide away on scroll down, return on scroll up ── */
 #topbars {
   position: sticky; top: 0; z-index: 100;
   transition: transform .32s cubic-bezier(.4, 0, .2, 1);
@@ -141,6 +142,89 @@ body.bars-hidden #brand {
 
 #chips { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; }
 #chips::-webkit-scrollbar { display: none; }
+
+/* ── CHANNELS SIDEBAR (right) ── */
+#channels {
+  position: fixed; z-index: 90; right: 10px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 6px; max-height: calc(100vh - 240px); overflow-y: auto; scrollbar-width: none;
+  background: rgba(255,255,255,.94);
+  -webkit-backdrop-filter: saturate(180%) blur(14px); backdrop-filter: saturate(180%) blur(14px);
+  border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-card);
+}
+#channels::-webkit-scrollbar { display: none; }
+#channels[hidden] { display: none; }
+.ch-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 4px;
+  border: 1px solid transparent; border-radius: 14px; background: transparent; color: var(--muted);
+  font: 500 13.5px var(--font); text-align: start; cursor: pointer; transition: all .15s;
+}
+.ch-item:hover { background: var(--action-hover); color: var(--text); }
+.ch-item.active { background: var(--accent-soft); border-color: #c9daff; color: var(--accent-strong); font-weight: 600; }
+.ch-ava { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
+.ch-ph, .ch-av {
+  position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%;
+  border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border);
+}
+.ch-ph { display: flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent-strong); font-size: 16px; font-weight: 600; }
+.ch-av { object-fit: cover; background: #fff; }
+.ch-name { display: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-inline-end: 8px; }
+/* הפיד והסרגל העליון (חיפוש/סינון) ממורכזים באזור שנשאר משמאל לרשימת הערוצים */
+body.has-side { --side-w: 80px; }
+body.has-side #feed {
+  width: calc(100% - var(--side-w)); max-width: 700px;
+  margin-left: calc((100% - var(--side-w) - min(700px, 100% - var(--side-w))) / 2);
+  margin-right: auto;
+}
+body.has-side #top-btn, body.has-side #toast { left: calc((100% - var(--side-w)) / 2); }
+@media (min-width: 768px) {
+  #channels { right: 20px; width: 190px; }
+  .ch-name { display: block; }
+  body.has-side { --side-w: 230px; }
+}
+@media (max-width: 640px) {
+  #channels { right: 6px; padding: 5px; }
+  .ch-ava { width: 34px; height: 34px; }
+  body.has-side { --side-w: 70px; }
+}
+/* סרגל צד: למעלה כותרת וחיפוש, למטה רשימת הערוצים. הסרגלים העליונים מסתיימים לידו */
+body.has-side #channels {
+  top: 0; bottom: 0; right: 0; transform: none;
+  width: var(--side-w); max-height: none; padding: 0; gap: 0; overflow: hidden;
+  border: 0; border-left: 1px solid var(--border); border-radius: 0; box-shadow: none;
+  background: rgba(255,255,255,.96); z-index: 120;
+}
+body.has-side #topbars { margin-right: var(--side-w); }
+body.has-side #brand { right: calc(var(--side-w) + 24px); max-width: calc(100vw - var(--side-w) - 32px); }
+body.has-side.bars-hidden #brand { right: calc(var(--side-w) + 14px); }
+#side-top { display: flex; justify-content: center; padding: 14px 6px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#side-title { display: flex; align-items: center; gap: 12px; }
+#side-title-text, #side-search { display: none; }
+#side-emblem {
+  width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  box-shadow: 0 6px 16px var(--accent-glow);
+}
+#side-emblem svg { width: 24px; height: 24px; }
+#side-title-text b, #side-title-text em { font-style: normal; font-size: 19px; font-weight: 700; letter-spacing: -.4px; line-height: 1.2; }
+#side-title-text b { color: var(--text); }
+#side-title-text em { color: var(--accent-strong); }
+#ch-list {
+  margin-top: auto; display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 6px 12px; overflow-y: auto; min-height: 0; scrollbar-width: none;
+}
+#ch-list::-webkit-scrollbar { display: none; }
+@media (min-width: 768px) {
+  #side-top { display: block; padding: 22px 16px 16px; }
+  #side-title { margin-bottom: 16px; }
+  #side-title-text { display: flex; flex-direction: column; }
+  #side-search { display: block; }
+  #ch-list { padding: 10px 10px 14px; }
+}
+@media (max-width: 640px) {
+  body.has-side #brand { right: calc(var(--side-w) + 16px); }
+  body.has-side.bars-hidden #brand { right: calc(var(--side-w) + 10px); }
+}
 .chip {
   flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px;
   height: 34px; padding: 0 15px; border-radius: 999px;
@@ -241,7 +325,7 @@ mark.hl { background: #ffe98a; color: inherit; border-radius: 4px; padding: 1px 
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .more-btn {
-  display: block; width: 100%; margin-top: 4px; padding: 12px;
+  display: block; width: 100%; margin-bottom: 4px; padding: 12px;
   border: none; border-radius: var(--radius-sm);
   background: var(--accent-soft); color: var(--accent-strong);
   font: 700 13.5px var(--font); cursor: pointer; transition: background .15s;
@@ -307,20 +391,132 @@ mark.hl { background: #ffe98a; color: inherit; border-radius: 4px; padding: 1px 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ══ REDESIGN: same look as the news-feed site (header pill search, chip sidebar) ══ */
+html{ scrollbar-width:none; -ms-overflow-style:none; }
+html::-webkit-scrollbar,body::-webkit-scrollbar{ display:none; width:0; }
+#header{ background:rgba(255,255,255,.86); }
+#header-logo{
+  width:34px; height:34px; border-radius:11px; border:0; box-shadow:none; padding:4px;
+  object-fit:contain; background:linear-gradient(135deg,#eaf1ff,#dbe7ff);
+}
+#brand{ font-size:19px; font-weight:700; letter-spacing:-.4px; }
+#status-pill{ background:#fff; }
+
+/* chips: soft fill, no border; active = soft blue */
+.chip{ height:auto; padding:8px 16px; border:0; background:var(--signature-bg); color:var(--muted); font:500 14px var(--font); }
+.chip:hover{ background:var(--action-hover); color:var(--text); }
+.chip.active{ background:var(--accent-soft); color:var(--accent-strong); font-weight:600; }
+.chip svg{ width:17px; height:17px; }
+
+/* search pill (soft fill, white on focus) */
+#search-wrap{ background:var(--signature-bg); border:0; box-shadow:none; }
+#search-wrap:focus-within{ background:#fff; box-shadow:0 0 0 3px var(--accent-glow); }
+#header #search-wrap{ margin-inline-start:auto; width:280px; height:40px; padding:0 8px 0 14px; }
+#header #search-wrap::after{
+  content:'/'; flex-shrink:0; font:600 11px var(--font); color:var(--muted);
+  background:#fff; border:1px solid var(--border); border-radius:6px; padding:2px 8px;
+}
+#header #search-wrap.has-value::after, #header #search-wrap:focus-within::after{ display:none; }
+#header #search-wrap #q{ font-size:13.5px; }
+#header #status-pill{ margin-inline-start:0; }
+
+/* narrow screens: slim icon rail */
+body.has-side{ --side-w:58px; }
+body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none; backdrop-filter:none; border-left:1px solid var(--border); }
+#side-top{ padding:12px 6px; border-bottom:0; }
+#side-emblem{ width:34px; height:34px; border-radius:11px; box-shadow:none; background:linear-gradient(135deg,#eaf1ff,#dbe7ff); color:var(--accent-strong); }
+#side-emblem svg{ width:18px; height:18px; }
+#ch-list{ gap:2px; padding:6px 7px 12px; margin-top:0; }
+.ch-item{ padding:4px; border-radius:12px; }
+.ch-item.active{ background:var(--accent-soft); border-color:transparent; }
+.ch-ava{ width:34px; height:34px; }
+.ch-ph,.ch-av{ border:2px solid #fff; }
+
+/* wide screens: persistent chip sidebar */
+@media (min-width:768px){
+  body.has-side{ --side-w:244px; }
+  #toolbar{ display:none; }
+  #side-top{ display:block; padding:18px 14px 6px; }
+  #side-title{ display:none; }
+  #side-search{ display:block; }
+  #side-search #chips{ flex-direction:column; gap:3px; overflow:visible; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  #side-search .chip{ width:100%; justify-content:flex-start; padding:8px 10px; border-radius:12px; }
+  #ch-list{ padding:10px 14px 24px; gap:3px; }
+  #ch-list::before{ content:'ערוצים'; padding:0 4px 6px; font:700 12px var(--font); color:var(--muted); letter-spacing:.3px; }
+  .ch-item{ padding:8px 10px; gap:9px; border-radius:12px; background:var(--signature-bg); font:500 14px var(--font); color:var(--muted); }
+  .ch-item:hover{ background:var(--action-hover); color:var(--text); }
+  .ch-item.active{ background:var(--accent-soft); color:var(--accent-strong); font-weight:600; }
+  .ch-ava{ width:24px; height:24px; }
+  .ch-ph,.ch-av{ border-width:1.5px; }
+  .ch-ph{ font-size:11px; }
+  .ch-name{ padding-inline-end:0; }
+}
+@media (max-width:640px){
+  body.has-side{ --side-w:58px; }
+  .ch-ava{ width:32px; height:32px; }
+}
+
+/* feed */
+.date-divider{ font-size:12.5px; font-weight:600; }
+.msg-bubble{ transition:box-shadow .2s,border-color .2s; }
+.msg-card:hover .msg-bubble{ border-color:#d9e2f3; }
+.chip,.ch-item{ -webkit-tap-highlight-color:transparent; }
+#top-btn{ background:#fff; color:var(--text); border:1px solid var(--border); }
+#top-btn:hover,#top-btn.has-new{ background:var(--accent); color:#fff; border-color:var(--accent); }
+
+/* ── admin sign-in + delete ── */
+#header{ position:relative; z-index:2; }
+#auth-wrap{ position:relative; flex-shrink:0; }
+#auth-btn{ width:34px; height:34px; padding:0; border-radius:50%; border:1px solid var(--border); background:#fff; color:var(--muted); display:grid; place-items:center; cursor:pointer; overflow:hidden; transition:background .15s,color .15s,box-shadow .15s; }
+#auth-btn:hover{ background:var(--accent-soft); color:var(--accent-strong); }
+#auth-btn svg{ width:18px; height:18px; }
+#auth-btn img{ width:100%; height:100%; object-fit:cover; display:block; }
+#auth-btn.admin{ box-shadow:0 0 0 2px #12b76a; border-color:#fff; }
+#auth-pop{ display:none; position:absolute; top:calc(100% + 12px); left:0; width:262px; padding:16px; background:var(--card-bg); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-hover); z-index:130; }
+#auth-pop.open{ display:block; }
+#auth-out b{ display:block; font-size:15px; font-weight:700; margin-bottom:4px; }
+#auth-out p{ font-size:13px; line-height:1.6; color:var(--muted); margin-bottom:12px; }
+#auth-out #g-err{ display:none; margin:10px 0 0; color:#b42318; }
+#auth-in{ display:none; flex-direction:column; gap:8px; }
+#auth-email{ font-size:13.5px; font-weight:600; word-break:break-all; }
+#auth-role{ align-self:flex-start; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; }
+#auth-role.ok{ background:#ecfdf3; color:#067647; }
+#auth-role.no{ background:#fef3f2; color:#b42318; }
+#auth-signout{ margin-top:4px; padding:9px; border:0; border-radius:var(--radius-sm); background:var(--signature-bg); color:var(--text); font:600 13.5px var(--font); cursor:pointer; }
+#auth-signout:hover{ background:var(--action-hover); }
+.msg-actions .action-del{ margin-inline-start:auto; }
+.action-del:hover{ background:#fef3f2; color:#d92d20; }
+.msg-card.deleting{ opacity:.35; pointer-events:none; transition:opacity .2s; }
 </style>
 </head>
 <body>
 
 <div id="brand">
-  <img id="header-logo" src="https://1221.org.il/app/uploads/2018/11/%D7%A1%D7%9E%D7%9C-%D7%9C%D7%95%D7%92%D7%95-%D7%90%D7%99%D7%97%D7%95%D7%93-%D7%94%D7%A6%D7%9C%D7%94--450x450.png" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">
-  <span>איחוד הצלה</span>
+  <img id="header-logo" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">
+  <span id="brand-name"></span>
 </div>
-
 <div id="topbars">
 <div id="header">
   <div id="status-pill">
     <span id="status-dot"></span>
     <span id="status-text">טוען...</span>
+  </div>
+  <div id="auth-wrap">
+    <button type="button" id="auth-btn" aria-label="כניסת מנהל" title="כניסת מנהל"></button>
+    <div id="auth-pop">
+      <div id="auth-out">
+        <b>כניסת מנהל</b>
+        <p>התחברו עם חשבון Google כדי לנהל את הפיד.</p>
+        <div id="g-btn"></div>
+        <p id="g-err">לא ניתן לטעון את Google. ייתכן שהאתר חסום ברשת הזו.</p>
+      </div>
+      <div id="auth-in">
+        <span id="auth-email"></span>
+        <span id="auth-role"></span>
+        <button type="button" id="auth-signout">התנתקות</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -334,7 +530,7 @@ mark.hl { background: #ffe98a; color: inherit; border-radius: 4px; padding: 1px 
       </button>
     </div>
     <div id="chips">
-      <button type="button" class="chip active" data-f="all">הכל</button>
+      <button type="button" class="chip active" data-f="all">כל הסוגים</button>
       <button type="button" class="chip" data-f="video">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5.5 3.5-5.5 3.5z" fill="currentColor"/></svg>
         וידאו
@@ -348,36 +544,78 @@ mark.hl { background: #ffe98a; color: inherit; border-radius: 4px; padding: 1px 
 </div>
 </div><!-- /#topbars -->
 
+<nav id="channels" hidden aria-label="ערוצים">
+  <div id="side-top">
+    <div id="side-title">
+      <span id="side-emblem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z"/><path d="M12 9v6M9 12h6"/></svg></span>
+      <span id="side-title-text"><b>כוחות הביטחון</b><em>וההצלה</em></span>
+    </div>
+    <div id="side-search"></div>
+  </div>
+  <div id="ch-list"></div>
+</nav>
+
 <div id="feed"><div class="state"><div class="spinner"></div>טוען הודעות...</div></div>
 
 <button id="top-btn" type="button">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
-  <span id="top-label">חזרה למעלה</span>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="m18 13-6 6-6-6"/></svg>
+  <span id="top-label">להודעות האחרונות</span>
 </button>
 <div id="toast"></div>
 <div id="lightbox"><img id="lightbox-img" alt=""></div>
 
 <script>
 (function(){
-  var SHEET_ID = '113jTdJHR78s_PmIH2TznEz0iyCZyAS2N1VtAWGVkck0';
-  var SHEET_NAME = 'איחוד הצלה';
-  var CHANNEL = 'איחוד הצלה';
-  var LOGO = 'https://1221.org.il/app/uploads/2018/11/%D7%A1%D7%9E%D7%9C-%D7%9C%D7%95%D7%92%D7%95-%D7%90%D7%99%D7%97%D7%95%D7%93-%D7%94%D7%A6%D7%9C%D7%94--450x450.png';
-  var PAGE = 30, REFRESH_MS = 120000;
+  /* ════════════════════════════════════════════════════════════
+     ערוצים - כדי להוסיף ערוץ חדש מוסיפים כאן אובייקט נוסף.
+     key   מזהה באנגלית (משמש בכתובת, למשל #police)
+     name  שם התצוגה
+     tg    שם המשתמש של הערוץ בטלגרם, בדיוק כפי שהוא כתוב בעמודה "ערוץ" בגיליון
+     logo  כתובת לוגו (אווטאר + כותרת)
+     icon  (לא חובה) פאביקון; ברירת מחדל: הלוגו
+     כל הערוצים נקראים מאותו גיליון ומאותה לשונית, ומסוננים לפי עמודת הערוץ.
+     ════════════════════════════════════════════════════════════ */
+  var SHEET_ID = '1owfJJAx0IrMS4dn6VP1AG-4NQm-5ma3Iw7BLSKoSI0U';
+  var SHEET_NAME = 'הודעות';
+  var ALL_ICON = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Ccircle%20cx=%2232%22%20cy=%2232%22%20r=%2232%22%20fill=%22%23eaf1ff%22/%3E%3Cg%20fill=%22%234478ea%22%3E%3Crect%20x=%2216%22%20y=%2216%22%20width=%2214%22%20height=%2214%22%20rx=%224%22/%3E%3Crect%20x=%2234%22%20y=%2216%22%20width=%2214%22%20height=%2214%22%20rx=%224%22/%3E%3Crect%20x=%2216%22%20y=%2234%22%20width=%2214%22%20height=%2214%22%20rx=%224%22/%3E%3Crect%20x=%2234%22%20y=%2234%22%20width=%2214%22%20height=%2214%22%20rx=%224%22/%3E%3C/g%3E%3C/svg%3E';
+  var CHANNELS = [
+    { key: 'all', name: 'הכל', all: true, logo: ALL_ICON },
+    { key: 'police', name: 'משטרת ישראל', tg: 'israelpoliceforce',
+      logo: 'https://shirtext.com/wp-content/uploads/2025/04/Emblem_of_Israel_Police_Blue-1024x937.png' },
+    { key: 'hatzalah', name: 'איחוד הצלה', tg: 'uh1221',
+      logo: 'https://1221.org.il/app/uploads/2018/11/%D7%A1%D7%9E%D7%9C-%D7%9C%D7%95%D7%92%D7%95-%D7%90%D7%99%D7%97%D7%95%D7%93-%D7%94%D7%A6%D7%9C%D7%94-.png' },
+    { key: 'mda', name: 'מד"א', tg: 'mdaisrael',
+      logo: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bb/Mada_logo.svg/960px-Mada_logo.svg.png' },
+    { key: 'fire', name: 'כבאות והצלה', tg: 'fireisrael7777',
+      logo: 'https://upload.wikimedia.org/wikipedia/he/d/d6/FireDepIsraelOld.svg?utm_source=he.wikipedia.org&utm_campaign=index&utm_content=original' },
+    { key: 'idf', name: 'דוברות צה"ל', tg: 'idf_telegram',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Badge_of_the_Israeli_Defense_Forces_2022_version.svg/250px-Badge_of_the_Israeli_Defense_Forces_2022_version.svg.png' },
+    { key: 'pikud', name: 'פיקוד העורף', tg: 'PikudHaOref_all',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Pakar.svg?utm_source=he.wikipedia.org&utm_campaign=index&utm_content=original' }
+  ].map(function(c){ c.sheetId = SHEET_ID; c.sheetName = SHEET_NAME; c.refreshMs = 60000; return c; });
 
-  var all = [], shown = PAGE, query = '', filter = 'all', updated = null, knownTop = 0, newCount = 0;
+  var PAGE = 30, NEAR = 200;
+  var S = {}, byKey = {}, byTg = {};
+  CHANNELS.forEach(function(c){
+    byKey[c.key] = c;
+    S[c.key] = { all: [], knownTop: 0, updated: null, loaded: false, sig: '', keys: {}, limit: 200, more: false, busy: false };
+    if (c.tg) byTg[c.tg] = c;
+  });
+
+  var cur = null, all = [], shown = PAGE, query = '', filter = 'all', newCount = 0;
+  var stick = true, timer = null, pendingLink = null, anchor = null, lastY = 0, ticking = false, fetchSeq = 0;
   var $ = function(id){ return document.getElementById(id); };
 
   /* ── data ── */
-  function fetchSheet(){
+  function fetchSheet(ch){
     return new Promise(function(res, rej){
-      var cb = '__g' + Date.now(), s = document.createElement('script');
+      var cb = '__g' + Date.now() + '_' + (++fetchSeq), s = document.createElement('script');
       var t = setTimeout(function(){ done(); rej(new Error('timeout')); }, 15000);
       function done(){ clearTimeout(t); delete window[cb]; s.remove(); }
       window[cb] = function(d){ done(); d.status === 'error' ? rej(new Error('query')) : res(d); };
       s.onerror = function(){ done(); rej(new Error('load')); };
-      s.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(SHEET_NAME) +
-        '&headers=1&tqx=out:json;responseHandler:' + cb + '&_=' + Date.now();
+      s.src = 'https://docs.google.com/spreadsheets/d/' + ch.sheetId + '/gviz/tq?sheet=' + encodeURIComponent(ch.sheetName) +
+        (function(){ var q = ch.all ? 'select * order by H desc limit ' + S[ch.key].limit : (ch.tg ? "select * where I = '" + ch.tg + "'" : ''); return q ? '&tq=' + encodeURIComponent(q) : ''; })() + '&headers=1&tqx=out:json;responseHandler:' + cb + '&_=' + Date.now();
       document.head.appendChild(s);
     });
   }
@@ -387,19 +625,27 @@ mark.hl { background: #ffe98a; color: inherit; border-radius: 4px; padding: 1px 
     var m = x.match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?/);
     return m ? new Date(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)) : null;
   }
-  function parse(d){
-    return d.table.rows.map(function(r){
+  function parse(d, ch){
+    var rows = d.table.rows.map(function(r){
       var c = r.c || [];
       // עדיפות לעמודה H (חותמת זמן במילישניות); אחרת עמודה B
-      var ts = v(c[7]), d = null, known = false;
-      if (ts != null && !isNaN(+ts) && +ts > 0){ d = new Date(+ts); known = true; }
+      var ts = v(c[7]), dt = null, known = false;
+      if (ts != null && !isNaN(+ts) && +ts > 0){ dt = new Date(+ts); known = true; }
       else {
-        d = pDate(v(c[1]));
-        known = !!d && (d.getHours() || d.getMinutes() || d.getSeconds());
+        dt = pDate(v(c[1]));
+        known = !!dt && (dt.getHours() || dt.getMinutes() || dt.getSeconds());
       }
-      return { id: +v(c[0]), date: d, hasTime: !!known, text: String(v(c[3]) || v(c[2]) || ''),
+      var mc = ch.all ? byTg[String(v(c[8]) || '')] : ch;
+      if (!mc) return null;
+      var id = +v(c[0]);
+      if (v(c[9]) || DEL[mc.key + '-' + id]) return null; // עמודה J = נמחק
+      return { id: id, uid: mc.key + '-' + id, ch: mc, date: dt, hasTime: !!known, text: String(v(c[3]) || v(c[2]) || ''),
                image: v(c[4]) || '', video: !!v(c[5]), link: v(c[6]) || '' };
-    }).filter(function(m){ return m.id; }).sort(function(a, b){ return b.id - a.id; });
+    }).filter(function(m){ return m && m.id; });
+    // ישן → חדש (בערוץ "הכל" לפי זמן, כי מספרי ההודעות נפרדים בכל ערוץ)
+    return rows.sort(ch.all
+      ? function(a, b){ return ((a.date || 0) - (b.date || 0)) || (a.id - b.id); }
+      : function(a, b){ return a.id - b.id; });
   }
 
   /* ── utils ── */
@@ -444,6 +690,16 @@ mark.hl { background: #ffe98a; color: inherit; border-radius: 4px; padding: 1px 
     }
   }
 
+  /* ── scroll helpers (הפיד מתחיל מלמטה: ההודעות החדשות בתחתית) ── */
+  function docH(){ return document.documentElement.scrollHeight; }
+  function dist(){ return docH() - window.scrollY - window.innerHeight; }
+  function jump(showBars){
+    stick = true;
+    window.scrollTo(0, docH());
+    lastY = window.scrollY;
+    if (showBars) setBars(true);
+  }
+
   /* ── render ── */
   function visible(){
     var q = query.trim();
@@ -455,23 +711,25 @@ mark.hl { background: #ffe98a; color: inherit; border-radius: 4px; padding: 1px 
   }
 
   function card(m, q){
-    var html = '<article class="msg-card" id="msg-' + m.id + '" data-id="' + m.id + '">' +
+    var mc = m.ch;
+    var html = '<article class="msg-card" id="msg-' + m.uid + '" data-id="' + m.uid + '">' +
       '<div class="msg-avatar-col">' +
-        '<img class="avatar" src="' + LOGO + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
-        '<div class="avatar-placeholder">א</div>' +
+        (mc.logo ? '<img class="avatar" src="' + esc(mc.logo) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' : '') +
+        '<div class="avatar-placeholder"' + (mc.logo ? '' : ' style="display:flex"') + '>' + esc(mc.name.charAt(0)) + '</div>' +
       '</div>' +
       '<div class="msg-main-col">' +
         '<div class="msg-meta">' +
-          '<span class="msg-channel">' + esc(CHANNEL) + '</span>' +
+          '<span class="msg-channel">' + esc(mc.name) + '</span>' +
           (m.hasTime ? '<span class="msg-time">' + fmtTime(m.date) + '</span>' : '') +
           (m.video ? '<span class="msg-tag">' + ICON.play + 'וידאו</span>' : '') +
         '</div>' +
         '<div class="msg-bubble">' +
           (m.text ? '<div class="msg-text">' + richText(m.text, q) + '</div>' : '') +
-          (m.image ? '<div class="msg-image-wrap"><img class="msg-image" loading="lazy" referrerpolicy="no-referrer" src="' + esc(m.image) + '" alt="תמונה" onerror="this.parentNode.remove()"></div>' : '') +
+          (m.image ? '<div class="msg-image-wrap"><img class="msg-image" referrerpolicy="no-referrer" src="' + esc(m.image) + '" alt="תמונה" onerror="this.parentNode.remove()"></div>' : '') +
           '<div class="msg-actions">' +
             '<button type="button" class="action-btn" data-act="link" data-tooltip="העתק קישור להודעה">' + ICON.link + '</button>' +
             (m.link ? '<a class="action-btn" href="' + esc(m.link) + '" target="_blank" rel="noopener noreferrer" data-tooltip="פתח במקור">' + ICON.open + '</a>' : '') +
+            (adminActive() ? '<button type="button" class="action-btn action-del" data-act="del" data-tooltip="מחק מהפיד">' + ICON.trash + '</button>' : '') +
             (m.text ? '<button type="button" class="action-btn" data-act="copy" data-tooltip="העתק טקסט">' + ICON.copy + '</button>' : '') +
           '</div>' +
         '</div>' +
@@ -487,114 +745,317 @@ mark.hl { background: #ffe98a; color: inherit; border-radius: 4px; padding: 1px 
       return;
     }
     var out = '', prev = null;
-    rows.slice(0, shown).forEach(function(m){
+    // הכפתור לטעינת הודעות ישנות יותר נמצא למעלה
+    if (rows.length > shown) out += '<button type="button" class="more-btn" id="more">הצגת הודעות קודמות (' + (rows.length - shown) + ')</button>';
+    else if (cur.all && S[cur.key].more) out += '<button type="button" class="more-btn" id="more">הצגת הודעות קודמות</button>';
+    rows.slice(Math.max(0, rows.length - shown)).forEach(function(m){
       var k = dayKey(m.date);
       if (k && k !== prev){ out += '<div class="date-divider">' + k + '</div>'; prev = k; }
       out += card(m, q);
     });
-    if (rows.length > shown) out += '<button type="button" class="more-btn" id="more">הצגת הודעות נוספות (' + (rows.length - shown) + ')</button>';
     box.innerHTML = out;
   }
 
-  function setStat(ok){
-    var pill = $('status-pill');
-    if (!pill) return;
-    pill.classList.toggle('ok', ok); pill.classList.toggle('err', !ok);
-    $('status-dot').classList.toggle('pulse', ok);
-    $('status-text').textContent = ok
-      ? all.length + ' הודעות · ' + updated.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
-      : 'אין חיבור';
+  function loadOlder(fn){
+    var first = document.querySelector('#feed .msg-card');
+    var id = first ? first.getAttribute('data-id') : null;
+    var top = first ? first.getBoundingClientRect().top : 0;
+    if (fn) fn(); else { shown += PAGE; render(); }
+    var el = id ? document.getElementById('msg-' + id) : null;
+    if (!el) return;
+    stick = false;
+    window.scrollBy(0, el.getBoundingClientRect().top - top);
+    lastY = window.scrollY;
+    // תמונות שנטענות אחר כך לא יזיזו את מה שהמשתמש רואה
+    anchor = { el: el, top: el.getBoundingClientRect().top };
+    clearTimeout(loadOlder._t);
+    loadOlder._t = setTimeout(function(){ anchor = null; }, 6000);
   }
 
-  function load(first){
-    fetchSheet().then(function(d){
-      var fresh = parse(d), top = fresh.length ? fresh[0].id : 0;
-      if (!first && knownTop){
-        var added = fresh.filter(function(m){ return m.id > knownTop; }).length;
-        if (added && window.scrollY > 300){ newCount += added; showTop(); }
+  /* ── טעינה הדרגתית: גוללים למעלה ← קודם מציגים מה שכבר נטען, ואז מבקשים מהגיליון עוד ── */
+  function fetchMore(){
+    var ch = cur, st = S[ch.key];
+    if (!ch.all || !st.more || st.busy || !st.loaded) return;
+    st.busy = true; st.limit += 200;
+    var b = $('more'); if (b) b.textContent = 'טוען הודעות קודמות...';
+    load(ch, true);
+  }
+  function loadMore(){ if (visible().length > shown) loadOlder(); else fetchMore(); }
+
+  function setStat(mode){
+    var pill = $('status-pill');
+    if (!pill) return;
+    var ok = mode === 'ok', st = S[cur.key];
+    pill.classList.toggle('ok', ok); pill.classList.toggle('err', mode === 'err');
+    $('status-dot').classList.toggle('pulse', ok);
+    $('status-text').textContent = ok
+      ? all.length + ' הודעות · ' + st.updated.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+      : (mode === 'err' ? 'אין חיבור' : 'טוען...');
+  }
+
+  function load(ch, grow){
+    var st = S[ch.key];
+    fetchSheet(ch).then(function(d){
+      var fresh = parse(d, ch);
+      if (grow) st.busy = false;
+      st.more = !!ch.all && d.table.rows.length >= st.limit;
+      var sig = JSON.stringify(fresh.map(function(m){ return [m.uid, m.text, m.image, m.video, m.date ? +m.date : 0]; }));
+      var added = st.loaded ? fresh.filter(function(m){ return !st.keys[m.uid]; }).length : 0;
+      var firstLoad = !st.loaded, changed = sig !== st.sig;
+      fresh.forEach(function(m){ st.keys[m.uid] = 1; });
+      st.all = fresh; st.sig = sig; st.updated = new Date(); st.loaded = true;
+      if (cur !== ch) return; // עברנו ערוץ בינתיים
+      all = st.all; setStat('ok');
+      if (grow){ loadOlder(function(){ shown += PAGE; render(); }); return; }
+      if (!changed && !firstLoad) return;
+      var near = dist() < NEAR, y = window.scrollY;
+      render();
+      if (firstLoad){ if (!applyLink(ch)) jump(true); }
+      else if (near) jump(false);
+      else {
+        window.scrollTo(0, y);
+        if (added){ newCount += added; showBtn(); }
       }
-      if (top > knownTop) knownTop = top;
-      all = fresh; updated = new Date(); setStat(true); render();
-      if (first) scrollToLinked();
     }).catch(function(){
-      setStat(false);
-      if (first || !all.length){
-        $('feed').innerHTML = '<div class="state"><b>לא ניתן לטעון את ההודעות</b>ודאו שהגיליון משותף עם "כל מי שיש לו את הקישור" בהרשאת צפייה, ושהלשונית נקראת "' + esc(SHEET_NAME) + '".</div>';
+      if (grow){ st.busy = false; st.limit = Math.max(200, st.limit - 200); var mb = $('more'); if (mb) mb.textContent = 'הצגת הודעות קודמות'; }
+      if (cur !== ch) return;
+      setStat('err');
+      if (!st.loaded){
+        $('feed').innerHTML = '<div class="state"><b>לא ניתן לטעון את ההודעות</b>ודאו שהגיליון משותף עם "כל מי שיש לו את הקישור" בהרשאת צפייה, ושהלשונית נקראת "' + esc(ch.sheetName) + '".</div>';
       }
     });
   }
 
-  /* ── deep link ── */
-  function scrollToLinked(){
-    var h = location.hash;
-    if (h.indexOf('#msg-') !== 0) return;
-    var id = +h.slice(5);
-    var idx = visible().findIndex(function(m){ return m.id === id; });
-    if (idx < 0) return;
-    if (idx >= shown){ shown = idx + 1; render(); }
-    var el = document.getElementById('msg-' + id);
-    if (!el) return;
-    el.scrollIntoView({ block: 'center' });
-    el.classList.add('msg-highlight');
-    setTimeout(function(){ el.classList.remove('msg-highlight'); }, 4500);
+  function schedule(){
+    clearTimeout(timer);
+    timer = setTimeout(function(){ load(cur); schedule(); }, cur.refreshMs || 60000);
   }
 
-  /* ── floating button ── */
-  function showTop(){
+  /* ── channels ── */
+  function buildChannels(){
+    var nav = $('channels'), box = $('ch-list');
+    nav.hidden = CHANNELS.length < 2;
+    document.body.classList.toggle('has-side', CHANNELS.length > 1);
+    box.innerHTML = CHANNELS.map(function(c){
+      return '<button type="button" class="ch-item" data-ch="' + esc(c.key) + '" title="' + esc(c.name) + '">' +
+        '<span class="ch-ava"><span class="ch-ph">' + esc(c.name.charAt(0)) + '</span>' +
+        (c.logo ? '<img class="ch-av" src="' + esc(c.logo) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">' : '') +
+        '</span><span class="ch-name">' + esc(c.name) + '</span></button>';
+    }).join('');
+  }
+
+  function selectChannel(ch, keepHash){
+    cur = ch;
+    var st = S[ch.key];
+    all = st.all; shown = PAGE; newCount = 0; hideBtn();
+    var logo = $('header-logo');
+    logo.style.visibility = ''; logo.src = ch.logo || '';
+    $('brand-name').textContent = ch.name;
+    document.title = ch.all ? 'כוחות הביטחון וההצלה' : ch.name + ' - כוחות הביטחון וההצלה';
+    $('favicon').href = ch.icon || ch.logo || 'data:,';
+    Array.prototype.forEach.call(document.querySelectorAll('#channels .ch-item'), function(b){
+      b.classList.toggle('active', b.getAttribute('data-ch') === ch.key);
+    });
+    if (!keepHash){ try { history.replaceState(null, '', '#' + ch.key); } catch(e){} }
+    if (st.loaded){ setStat('ok'); render(); jump(true); }
+    else {
+      setStat('load');
+      $('feed').innerHTML = '<div class="state"><div class="spinner"></div>טוען הודעות...</div>';
+    }
+    load(ch);
+    schedule();
+  }
+
+  /* ── deep link: #<channel>/msg-<id> ── */
+  function parseHash(){
+    var h = decodeURIComponent(location.hash || '');
+    var m = h.match(/^#(?:([^\/]+)\/)?msg-(\d+)$/);
+    if (m) return { key: m[1] && byKey[m[1]] ? m[1] : CHANNELS[0].key, id: +m[2] };
+    var k = h.slice(1);
+    return byKey[k] ? { key: k, id: 0 } : null;
+  }
+  function applyLink(ch){
+    if (!pendingLink || pendingLink.key !== ch.key || !pendingLink.id) return false;
+    var id = pendingLink.id; pendingLink = null;
+    var rows = visible(), idx = rows.findIndex(function(m){ return m.id === id; });
+    if (idx < 0) return false;
+    var pos = rows.length - idx;
+    if (pos > shown){ shown = pos; render(); }
+    var el = document.getElementById('msg-' + ch.key + '-' + id);
+    if (!el) return false;
+    stick = false;
+    el.scrollIntoView({ block: 'center' });
+    lastY = window.scrollY;
+    el.classList.add('msg-highlight');
+    setTimeout(function(){ el.classList.remove('msg-highlight'); }, 4500);
+    return true;
+  }
+
+  /* ── floating button (חזרה להודעות האחרונות) ── */
+  function showBtn(){
     var b = $('top-btn'); b.classList.add('visible');
     if (newCount){ b.classList.add('has-new'); $('top-label').textContent = newCount + ' הודעות חדשות'; }
   }
-  function checkScroll(){
+  function hideBtn(){
     var b = $('top-btn');
-    if (window.scrollY > 600) showTop();
-    else { b.classList.remove('visible', 'has-new'); newCount = 0; $('top-label').textContent = 'חזרה למעלה'; }
+    b.classList.remove('visible', 'has-new'); newCount = 0; $('top-label').textContent = 'להודעות האחרונות';
+  }
+  function checkScroll(){
+    var d = dist();
+    stick = d < 80;
+    if (d < NEAR) hideBtn();
+    else if (d > 600 || newCount) showBtn();
+    if (anchor) anchor.top = anchor.el.getBoundingClientRect().top;
   }
 
+  /* ── מנהל: התחברות עם Google ומחיקת הודעות מהפיד ── */
+  var GOOGLE_CLIENT_ID = '426523025549-7c50rkn7cun4vmm2r802u0ij6egjehtg.apps.googleusercontent.com';
+  var ADMIN_API = 'https://script.google.com/macros/s/AKfycbx5tTEM29nBOWn72ucd4DupqUqR28fPhdQRe_G-5GkVPnOFhmNjcKoVGOIafmYnvI3t/exec'; // Web App של Admin.gs
+  var admin = { token: '', exp: 0, email: '', picture: '', ok: false }, DEL = {}, gTry = 0;
+  ICON.user = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
+  ICON.trash = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+
+  function adminActive(){ return admin.ok && Date.now() < admin.exp; }
+  function jwt(t){
+    try {
+      var b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(decodeURIComponent(Array.prototype.map.call(atob(b), function(c){ return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join('')));
+    } catch(e){ return null; }
+  }
+  function adminCall(payload){
+    return fetch(ADMIN_API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+      .then(function(r){ return r.json(); });
+  }
+  function refreshView(){
+    if (!cur) return;
+    var near = dist() < NEAR, y = window.scrollY;
+    all = S[cur.key].all; render();
+    if (near) jump(false); else window.scrollTo(0, y);
+  }
+  function paintAuth(){
+    var signed = !!admin.token && Date.now() < admin.exp, on = adminActive(), b = $('auth-btn');
+    b.classList.toggle('admin', on);
+    b.innerHTML = signed && admin.picture ? '<img src="' + esc(admin.picture) + '" alt="" referrerpolicy="no-referrer">' : ICON.user;
+    $('auth-out').style.display = signed ? 'none' : 'block';
+    $('auth-in').style.display = signed ? 'flex' : 'none';
+    $('auth-email').textContent = admin.email;
+    $('auth-role').textContent = on ? 'מנהל' : 'אין הרשאת מנהל';
+    $('auth-role').className = on ? 'ok' : 'no';
+  }
+  function signOut(){
+    admin = { token: '', exp: 0, email: '', picture: '', ok: false };
+    try { localStorage.removeItem('adm_tok'); } catch(e){}
+    if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect();
+    paintAuth(); refreshView();
+  }
+  function startSession(token, silent){
+    var p = jwt(token);
+    if (!p || !p.exp || p.exp * 1000 < Date.now()){ signOut(); return; }
+    admin = { token: token, exp: p.exp * 1000, email: p.email || '', picture: p.picture || '', ok: false };
+    try { localStorage.setItem('adm_tok', token); } catch(e){}
+    paintAuth();
+    if (!ADMIN_API){ toast('חסרה כתובת סקריפט המנהל'); return; }
+    adminCall({ action: 'check', token: token }).then(function(r){
+      admin.ok = !!(r && r.ok); paintAuth(); refreshView();
+      if (admin.ok){ $('auth-pop').classList.remove('open'); if (!silent) toast('מחובר כמנהל'); }
+      else if (!silent) toast('לחשבון הזה אין הרשאת מנהל');
+    }).catch(function(){ toast('אימות המנהל נכשל'); });
+  }
+  function expired(){
+    admin.ok = false; paintAuth(); refreshView();
+    toast('ההתחברות פגה, התחברו שוב'); $('auth-pop').classList.add('open');
+  }
+  function deleteMsg(m){
+    if (!adminActive()){ expired(); return; }
+    if (!confirm('למחוק את ההודעה מהפיד?')) return;
+    var el = document.getElementById('msg-' + m.uid); if (el) el.classList.add('deleting');
+    adminCall({ action: 'delete', token: admin.token, ch: m.ch.tg, id: m.id }).then(function(r){
+      if (r && r.ok){
+        DEL[m.uid] = 1;
+        Object.keys(S).forEach(function(k){ S[k].all = S[k].all.filter(function(x){ return x.uid !== m.uid; }); });
+        refreshView(); toast('ההודעה נמחקה');
+      } else if (r && r.error === 'unauthorized'){ if (el) el.classList.remove('deleting'); expired(); }
+      else { if (el) el.classList.remove('deleting'); toast(r && r.error === 'notfound' ? 'ההודעה לא נמצאה בגיליון' : 'המחיקה נכשלה'); }
+    }).catch(function(){ if (el) el.classList.remove('deleting'); toast('המחיקה נכשלה'); });
+  }
+  function initGsi(){
+    if (window.google && google.accounts && google.accounts.id){
+      google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: function(r){ startSession(r.credential); } });
+      google.accounts.id.renderButton($('g-btn'), { theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', locale: 'he', width: 228 });
+      return;
+    }
+    if (++gTry < 40) setTimeout(initGsi, 300); else $('g-err').style.display = 'block';
+  }
+  $('auth-btn').onclick = function(){ $('auth-pop').classList.toggle('open'); };
+  $('auth-signout').onclick = function(){ signOut(); $('auth-pop').classList.remove('open'); };
+  document.addEventListener('click', function(e){ if (!e.target.closest('#auth-wrap')) $('auth-pop').classList.remove('open'); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') $('auth-pop').classList.remove('open'); });
+  paintAuth(); initGsi();
+  try { var savedTok = localStorage.getItem('adm_tok'); if (savedTok) startSession(savedTok, true); } catch(e){}
+
   /* ── events ── */
+  function refresh(){ shown = PAGE; render(); jump(false); }
   if ($('q')) $('q').addEventListener('input', function(){
-    query = this.value; shown = PAGE;
+    query = this.value;
     $('search-wrap').classList.toggle('has-value', !!query);
-    render();
+    refresh();
   });
   if ($('clr')) $('clr').onclick = function(){
-    $('q').value = ''; query = ''; shown = PAGE;
-    $('search-wrap').classList.remove('has-value'); render(); $('q').focus();
+    $('q').value = ''; query = '';
+    $('search-wrap').classList.remove('has-value'); refresh(); $('q').focus();
   };
   if ($('chips')) $('chips').addEventListener('click', function(e){
     var b = e.target.closest('.chip'); if (!b) return;
-    filter = b.getAttribute('data-f'); shown = PAGE;
-    Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(c){ c.classList.toggle('active', c === b); });
-    render();
+    filter = b.getAttribute('data-f');
+    Array.prototype.forEach.call(document.querySelectorAll('#chips .chip'), function(c){ c.classList.toggle('active', c === b); });
+    refresh();
+  });
+  $('channels').addEventListener('click', function(e){
+    var b = e.target.closest('.ch-item'); if (!b) return;
+    var ch = byKey[b.getAttribute('data-ch')];
+    if (ch && ch !== cur) selectChannel(ch);
   });
   $('feed').addEventListener('click', function(e){
-    if (e.target.closest('#more')){ shown += PAGE; render(); return; }
+    if (e.target.closest('#more')){ loadMore(); return; }
     var img = e.target.closest('.msg-image');
     if (img){ $('lightbox-img').src = img.src; $('lightbox').classList.add('open'); return; }
     var btn = e.target.closest('.action-btn[data-act]'); if (!btn) return;
-    var id = +btn.closest('.msg-card').getAttribute('data-id');
-    var m = all.find(function(x){ return x.id === id; }); if (!m) return;
+    var uid = btn.closest('.msg-card').getAttribute('data-id');
+    var m = all.find(function(x){ return x.uid === uid; }); if (!m) return;
+    if (btn.getAttribute('data-act') === 'del'){ deleteMsg(m); return; }
     if (btn.getAttribute('data-act') === 'link')
-      copyTo(btn, location.href.split('#')[0] + '#msg-' + id, 'קישור להודעה הועתק', ICON.link);
+      copyTo(btn, location.href.split('#')[0] + '#' + m.ch.key + '/msg-' + m.id, 'קישור להודעה הועתק', ICON.link);
     else
       copyTo(btn, m.text, 'הטקסט הועתק', ICON.copy);
   });
+  // תמונות שנטענות אחרי הרינדור משנות את הגובה: נשארים בתחתית / מקבעים את מה שנראה
+  $('feed').addEventListener('load', function(e){
+    if (!e.target || e.target.tagName !== 'IMG') return;
+    if (anchor){
+      var dy = anchor.el.getBoundingClientRect().top - anchor.top;
+      if (dy){ window.scrollBy(0, dy); lastY = window.scrollY; }
+    } else if (stick){
+      window.scrollTo(0, docH()); lastY = window.scrollY;
+    }
+  }, true);
   $('lightbox').onclick = function(){ this.classList.remove('open'); };
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape') $('lightbox').classList.remove('open');
     else if (e.key === '/' && $('q') && document.activeElement !== $('q')){ e.preventDefault(); $('q').focus(); }
   });
-  $('top-btn').onclick = function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); newCount = 0; };
+  $('top-btn').onclick = function(){ stick = true; window.scrollTo({ top: docH(), behavior: 'smooth' }); newCount = 0; };
   window.addEventListener('scroll', checkScroll, { passive: true });
+  window.addEventListener('scroll', function(){ if (window.scrollY < 500 && cur && S[cur.key].loaded) loadMore(); }, { passive: true });
 
-  /* hide top bars while scrolling down, reveal on scroll up */
-  var lastY = window.scrollY, ticking = false;
+  /* hide top bars while scrolling up into history, reveal on scroll down */
+  lastY = window.scrollY;
   function updateBars(){
     var bars = $('topbars'), y = Math.max(0, window.scrollY), dy = y - lastY;
     if (y < 80){ setBars(true); lastY = y; }
-    else if (dy > 6){
+    else if (dy < -6){            // גלילה למעלה, להיסטוריית ההודעות: הסרגל נעלם
       if (!bars.contains(document.activeElement)) setBars(false);
       lastY = y;
-    } else if (dy < -6){ setBars(true); lastY = y; }
+    } else if (dy > 6){ setBars(true); lastY = y; }  // גלילה למטה: הסרגל חוזר
     ticking = false;
   }
   function setBars(show){
@@ -606,8 +1067,21 @@ mark.hl { background: #ffe98a; color: inherit; border-radius: 4px; padding: 1px 
   }, { passive: true });
   if ($('q')) $('q').addEventListener('focus', function(){ setBars(true); });
 
-  load(true);
-  setInterval(function(){ load(false); }, REFRESH_MS);
+  /* ── חיפוש: בסרגל הצד במסך רחב, בסרגל העליון במסך צר ── */
+  var wideMq = window.matchMedia ? window.matchMedia('(min-width: 768px)') : null;
+  function placeSearch(){
+    var sw = $('search-wrap'), cp = $('chips'), tb = document.querySelector('.tb-wrap');
+    if (!sw || !cp || !tb) return;
+    if (wideMq && wideMq.matches){ $('header').insertBefore(sw, $('status-pill')); $('side-search').appendChild(cp); }
+    else { tb.appendChild(cp); tb.insertBefore(sw, tb.firstChild); }
+  }
+  placeSearch();
+  if (wideMq){ if (wideMq.addEventListener) wideMq.addEventListener('change', placeSearch); else wideMq.addListener(placeSearch); }
+
+  /* ── start ── */
+  buildChannels();
+  pendingLink = parseHash();
+  selectChannel(pendingLink ? byKey[pendingLink.key] : CHANNELS[0], !!(pendingLink && pendingLink.id));
 })();
 </script>
 </body>
