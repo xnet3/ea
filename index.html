@@ -480,7 +480,7 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
 #auth-out #g-err{ display:none; margin:10px 0 0; color:#b42318; }
 #auth-in{ display:none; flex-direction:column; gap:8px; }
 #auth-email{ font-size:13.5px; font-weight:600; word-break:break-all; }
-#auth-role{ display:none; align-self:flex-start; font-size:11.5px; font-weight:700; line-height:1.55; padding:3px 10px; border-radius:10px; }
+#auth-role{ align-self:flex-start; font-size:11.5px; font-weight:700; line-height:1.55; padding:3px 10px; border-radius:10px; }
 #auth-role.ok{ background:#ecfdf3; color:#067647; }
 #auth-role.no{ background:#fef3f2; color:#b42318; }
 #auth-signout{ margin-top:4px; padding:9px; border:0; border-radius:var(--radius-sm); background:var(--signature-bg); color:var(--text); font:600 13.5px var(--font); cursor:pointer; }
@@ -521,11 +521,11 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
     <span id="status-text">טוען...</span>
   </div>
   <div id="auth-wrap">
-    <button type="button" id="auth-btn" aria-label="התחברות" title="התחברות"></button>
+    <button type="button" id="auth-btn" aria-label="כניסת מנהל" title="כניסת מנהל"></button>
     <div id="auth-pop">
       <div id="auth-out">
-        <b>התחברות</b>
-        <p>התחברו עם חשבון Google.</p>
+        <b>כניסת מנהל</b>
+        <p>התחברו עם חשבון Google כדי לנהל את הפיד.</p>
         <div id="g-btn"></div>
         <p id="g-err">לא ניתן לטעון את Google. ייתכן שהאתר חסום ברשת הזו.</p>
       </div>
@@ -966,11 +966,8 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
     $('auth-out').style.display = signed ? 'none' : 'block';
     $('auth-in').style.display = signed ? 'flex' : 'none';
     $('auth-email').textContent = admin.email;
-    $('auth-role').textContent = on ? 'מנהל' : '';
+    $('auth-role').textContent = on ? 'מנהל' : (admin.err || 'אין הרשאת מנהל');
     $('auth-role').className = on ? 'ok' : 'no';
-    $('auth-role').style.display = on ? 'inline-block' : 'none';
-    b.setAttribute('aria-label', signed ? 'החשבון שלי' : 'התחברות');
-    b.title = signed ? 'החשבון שלי' : 'התחברות';
   }
   function signOut(){
     admin = { token: '', exp: 0, email: '', picture: '', ok: false };
@@ -984,14 +981,20 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
     admin = { token: token, exp: p.exp * 1000, email: p.email || '', picture: p.picture || '', ok: false };
     try { localStorage.setItem('adm_tok', token); } catch(e){}
     paintAuth();
-    $('auth-pop').classList.remove('open');
-    if (!ADMIN_API) return;
-    /* בדיקת הרשאה שקטה: רק מנהל מורשה רואה שינוי כלשהו, כל השאר נשארים מחוברים כרגיל */
+    if (!ADMIN_API){ toast('חסרה כתובת סקריפט המנהל'); return; }
+    admin.err = 'בודק הרשאה...'; paintAuth();
     adminCall({ action: 'check', token: token }).then(function(r){
       admin.ok = !!(r && r.ok);
-      paintAuth();
-      if (admin.ok){ refreshView(); if (!silent) toast('מחובר כמנהל'); }
-    }).catch(function(){ /* שקט */ });
+      admin.err = admin.ok ? '' : (r && r.error === 'unauthorized'
+        ? 'הסקריפט לא אישר את החשבון הזה (אסימון, Client ID או אימייל לא תואמים)'
+        : 'שגיאת סקריפט: ' + (r && r.error ? r.error : 'תשובה לא צפויה'));
+      paintAuth(); refreshView();
+      if (admin.ok){ $('auth-pop').classList.remove('open'); if (!silent) toast('מחובר כמנהל'); }
+      else $('auth-pop').classList.add('open');
+    }).catch(function(){
+      admin.err = 'לא התקבלה תשובה מהסקריפט. בדקו שהפריסה היא Anyone ושהכתובת נכונה';
+      paintAuth(); $('auth-pop').classList.add('open');
+    });
   }
   function expired(){
     admin.ok = false; paintAuth(); refreshView();
