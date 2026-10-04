@@ -480,14 +480,32 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
 #auth-out #g-err{ display:none; margin:10px 0 0; color:#b42318; }
 #auth-in{ display:none; flex-direction:column; gap:8px; }
 #auth-email{ font-size:13.5px; font-weight:600; word-break:break-all; }
-#auth-role{ align-self:flex-start; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; }
+#auth-role{ display:none; align-self:flex-start; font-size:11.5px; font-weight:700; line-height:1.55; padding:3px 10px; border-radius:10px; }
 #auth-role.ok{ background:#ecfdf3; color:#067647; }
 #auth-role.no{ background:#fef3f2; color:#b42318; }
 #auth-signout{ margin-top:4px; padding:9px; border:0; border-radius:var(--radius-sm); background:var(--signature-bg); color:var(--text); font:600 13.5px var(--font); cursor:pointer; }
 #auth-signout:hover{ background:var(--action-hover); }
-.msg-actions .action-del{ margin-inline-start:auto; }
+.msg-actions .action-ad{ margin-inline-start:auto; }
+.action-ad:hover{ background:#fffaeb; color:#b54708; }
 .action-del:hover{ background:#fef3f2; color:#d92d20; }
 .msg-card.deleting{ opacity:.35; pointer-events:none; transition:opacity .2s; }
+
+#ad-modal{ display:none; position:fixed; inset:0; z-index:300; align-items:center; justify-content:center; padding:16px; background:rgba(20,22,28,.5); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
+#ad-modal.open{ display:flex; }
+#ad-box{ width:100%; max-width:420px; background:var(--card-bg); border-radius:20px; padding:22px; box-shadow:0 24px 60px rgba(20,22,28,.2); }
+#ad-box b{ display:block; font-size:17px; font-weight:700; margin-bottom:6px; }
+#ad-box p{ font-size:13.5px; line-height:1.65; color:var(--muted); }
+#ad-chips{ display:flex; flex-wrap:wrap; gap:6px; margin:14px 0 10px; }
+.ad-chip{ border:0; border-radius:999px; padding:7px 13px; background:var(--signature-bg); color:var(--muted); font:500 13px var(--font); cursor:pointer; text-decoration:line-through; unicode-bidi:isolate; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ad-chip.on{ background:var(--accent-soft); color:var(--accent-strong); font-weight:600; text-decoration:none; }
+#ad-count{ font-size:14px; font-weight:700; margin:6px 0 12px; }
+#ad-save-row{ display:flex; gap:8px; align-items:flex-start; font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:16px; cursor:pointer; }
+#ad-save-row input{ margin-top:3px; accent-color:var(--accent); }
+#ad-actions{ display:flex; gap:8px; }
+#ad-actions button{ flex:1; padding:11px; border:0; border-radius:var(--radius-sm); font:700 14px var(--font); cursor:pointer; }
+#ad-cancel{ background:var(--signature-bg); color:var(--text); }
+#ad-go{ background:#d92d20; color:#fff; }
+#ad-go:disabled{ opacity:.5; cursor:default; }
 </style>
 </head>
 <body>
@@ -503,11 +521,11 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
     <span id="status-text">טוען...</span>
   </div>
   <div id="auth-wrap">
-    <button type="button" id="auth-btn" aria-label="כניסת מנהל" title="כניסת מנהל"></button>
+    <button type="button" id="auth-btn" aria-label="התחברות" title="התחברות"></button>
     <div id="auth-pop">
       <div id="auth-out">
-        <b>כניסת מנהל</b>
-        <p>התחברו עם חשבון Google כדי לנהל את הפיד.</p>
+        <b>התחברות</b>
+        <p>התחברו עם חשבון Google.</p>
         <div id="g-btn"></div>
         <p id="g-err">לא ניתן לטעון את Google. ייתכן שהאתר חסום ברשת הזו.</p>
       </div>
@@ -562,6 +580,14 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
   <span id="top-label">להודעות האחרונות</span>
 </button>
 <div id="toast"></div>
+<div id="ad-modal"><div id="ad-box" role="dialog" aria-modal="true">
+  <b>מחיקה כתוכן שיווקי</b>
+  <p>זוהו בהודעה הסימנים הבאים. כל הודעה שמכילה אחד מהם תימחק. אפשר לבטל סימן בלחיצה עליו.</p>
+  <div id="ad-chips"></div>
+  <div id="ad-count"></div>
+  <label id="ad-save-row"><input type="checkbox" id="ad-save" checked><span>להסתיר גם הודעות עתידיות עם הסימנים האלה</span></label>
+  <div id="ad-actions"><button type="button" id="ad-cancel">ביטול</button><button type="button" id="ad-go">מחיקה</button></div>
+</div></div>
 <div id="lightbox"><img id="lightbox-img" alt=""></div>
 
 <script>
@@ -704,6 +730,7 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
   function visible(){
     var q = query.trim();
     return all.filter(function(m){
+      if (RULES.length && isAd(m)) return false;
       if (filter === 'video' && !m.video) return false;
       if (filter === 'image' && !m.image) return false;
       return !q || m.text.indexOf(q) > -1;
@@ -729,7 +756,7 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
           '<div class="msg-actions">' +
             '<button type="button" class="action-btn" data-act="link" data-tooltip="העתק קישור להודעה">' + ICON.link + '</button>' +
             (m.link ? '<a class="action-btn" href="' + esc(m.link) + '" target="_blank" rel="noopener noreferrer" data-tooltip="פתח במקור">' + ICON.open + '</a>' : '') +
-            (adminActive() ? '<button type="button" class="action-btn action-del" data-act="del" data-tooltip="מחק מהפיד">' + ICON.trash + '</button>' : '') +
+            (adminActive() ? '<button type="button" class="action-btn action-ad" data-act="ad" data-tooltip="מחק כתוכן שיווקי">' + ICON.ad + '</button><button type="button" class="action-btn action-del" data-act="del" data-tooltip="מחק מהפיד">' + ICON.trash + '</button>' : '') +
             (m.text ? '<button type="button" class="action-btn" data-act="copy" data-tooltip="העתק טקסט">' + ICON.copy + '</button>' : '') +
           '</div>' +
         '</div>' +
@@ -927,7 +954,7 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
       .then(function(r){ return r.json(); });
   }
   function refreshView(){
-    if (!cur) return;
+    if (!cur || !S[cur.key].loaded) return;
     var near = dist() < NEAR, y = window.scrollY;
     all = S[cur.key].all; render();
     if (near) jump(false); else window.scrollTo(0, y);
@@ -939,8 +966,11 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
     $('auth-out').style.display = signed ? 'none' : 'block';
     $('auth-in').style.display = signed ? 'flex' : 'none';
     $('auth-email').textContent = admin.email;
-    $('auth-role').textContent = on ? 'מנהל' : 'אין הרשאת מנהל';
+    $('auth-role').textContent = on ? 'מנהל' : '';
     $('auth-role').className = on ? 'ok' : 'no';
+    $('auth-role').style.display = on ? 'inline-block' : 'none';
+    b.setAttribute('aria-label', signed ? 'החשבון שלי' : 'התחברות');
+    b.title = signed ? 'החשבון שלי' : 'התחברות';
   }
   function signOut(){
     admin = { token: '', exp: 0, email: '', picture: '', ok: false };
@@ -954,12 +984,14 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
     admin = { token: token, exp: p.exp * 1000, email: p.email || '', picture: p.picture || '', ok: false };
     try { localStorage.setItem('adm_tok', token); } catch(e){}
     paintAuth();
-    if (!ADMIN_API){ toast('חסרה כתובת סקריפט המנהל'); return; }
+    $('auth-pop').classList.remove('open');
+    if (!ADMIN_API) return;
+    /* בדיקת הרשאה שקטה: רק מנהל מורשה רואה שינוי כלשהו, כל השאר נשארים מחוברים כרגיל */
     adminCall({ action: 'check', token: token }).then(function(r){
-      admin.ok = !!(r && r.ok); paintAuth(); refreshView();
-      if (admin.ok){ $('auth-pop').classList.remove('open'); if (!silent) toast('מחובר כמנהל'); }
-      else if (!silent) toast('לחשבון הזה אין הרשאת מנהל');
-    }).catch(function(){ toast('אימות המנהל נכשל'); });
+      admin.ok = !!(r && r.ok);
+      paintAuth();
+      if (admin.ok){ refreshView(); if (!silent) toast('מחובר כמנהל'); }
+    }).catch(function(){ /* שקט */ });
   }
   function expired(){
     admin.ok = false; paintAuth(); refreshView();
@@ -993,6 +1025,107 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
   paintAuth(); initGsi();
   try { var savedTok = localStorage.getItem('adm_tok'); if (savedTok) startSession(savedTok, true); } catch(e){}
 
+
+  /* ── תוכן שיווקי: זיהוי לפי טלפון / אתר / קישור, מחיקה של כל ההודעות התואמות, וכלל לעתיד ── */
+  var RULES = [], adCtx = null;
+  ICON.ad = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M3 3l18 18"/></svg>';
+  /*AD-START*/
+  var SAFE = ['youtube.com','youtu.be','google.com','goo.gl','facebook.com','fb.com','instagram.com','twitter.com','x.com','tiktok.com','whatsapp.com','telegram.org','gov.il','idf.il','mda.org.il','1221.org.il','102.org.il','waze.com','wikipedia.org','gmail.com','yahoo.com','outlook.com','hotmail.com','walla.co.il'];
+  var LINKHOSTS = ['wa.me','t.me','telegram.me','chat.whatsapp.com','bit.ly','tinyurl.com','cutt.ly','is.gd'];
+  function normT(s){ return String(s || '').replace(/\s+/g, ' ').trim().toLowerCase(); }
+  function isOwn(sg){ return CHANNELS.some(function(c){ return c.tg && c.tg.toLowerCase() === sg; }); }
+  function scan(text){
+    var t = String(text || ''), r = { phones: {}, doms: {}, links: {} }, m, re;
+    re = /(^|\D)((?:\+?972[-\s]?|0)([2-9]\d?)[-\s]?(\d{3})[-\s]?(\d{4}))(?!\d)/g;
+    while ((m = re.exec(t))){ var d = m[3] + m[4] + m[5]; if (d.length === 8 || d.length === 9) r.phones[d] = 1; }
+    re = /(?:https?:\/\/)?((?:[a-z0-9-]+\.)+[a-z]{2,})((?:\/[^\s<>"')\]]*)?)/gi;
+    while ((m = re.exec(t))){
+      var host = m[1].toLowerCase().replace(/^-+/, '').replace(/^www\./, ''),
+          path = (m[2] || '').toLowerCase().replace(/[?#].*$/, '').replace(/[.,;:!]+$/, ''),
+          segs = path.split('/').filter(Boolean);
+      if (LINKHOSTS.indexOf(host) > -1){
+        if (host === 'wa.me' && /^\d+$/.test(segs[0] || '')) continue;
+        if (segs.length && !isOwn(segs[0])) r.links[host + '/' + (segs[0] === 'message' ? segs.slice(0, 2).join('/') : segs[0])] = 1;
+        continue;
+      }
+      var labels = host.split('.'), base = /\.(co|org|net|gov|ac|muni|k12)\.il$/.test(host) ? labels.slice(-3).join('.') : labels.slice(-2).join('.');
+      if (!SAFE.some(function(x){ return base === x || base.slice(-x.length - 1) === '.' + x; })) r.doms[base] = 1;
+    }
+    return r;
+  }
+  function sig(m){ if (!m._s){ m._s = scan(m.text); m._s.norm = normT(m.text); } return m._s; }
+  function hit(m, r){
+    var sg = sig(m);
+    if (r.t === 'phone') return !!sg.phones[r.v];
+    if (r.t === 'dom') return !!sg.doms[r.v];
+    return !!r.v && sg.norm.indexOf(r.v) > -1;
+  }
+  function isAd(m){ for (var i = 0; i < RULES.length; i++) if (hit(m, RULES[i])) return true; return false; }
+  function fpsOf(text){
+    var sc = scan(text), out = [];
+    Object.keys(sc.phones).forEach(function(d){ out.push({ t: 'phone', v: d, label: '0' + d.slice(0, d.length === 9 ? 2 : 1) + '-' + d.slice(d.length === 9 ? 2 : 1) }); });
+    Object.keys(sc.doms).forEach(function(d){ out.push({ t: 'dom', v: d, label: d }); });
+    Object.keys(sc.links).forEach(function(d){ out.push({ t: 'link', v: d, label: d }); });
+    if (!out.length){
+      var best = String(text || '').split('\n').map(function(x){ return x.trim(); }).filter(function(x){ return x.length >= 25; })
+        .sort(function(a, b){ return b.length - a.length; })[0];
+      if (best) out.push({ t: 'line', v: normT(best), label: best.slice(0, 45) + (best.length > 45 ? '…' : '') });
+    }
+    return out.slice(0, 6);
+  }
+  /*AD-END*/
+  function adMatches(){
+    var seen = {}, out = [], on = adCtx.fps.filter(function(f){ return f.on; });
+    Object.keys(S).forEach(function(k){ S[k].all.forEach(function(x){
+      if (seen[x.uid]) return; seen[x.uid] = 1;
+      if (on.some(function(f){ return hit(x, f); })) out.push(x);
+    }); });
+    return out;
+  }
+  function paintAd(){
+    $('ad-chips').innerHTML = adCtx.fps.map(function(f, i){
+      return '<button type="button" dir="auto" class="ad-chip' + (f.on ? ' on' : '') + '" data-i="' + i + '">' + esc(f.label) + '</button>';
+    }).join('');
+    var n = adMatches().length;
+    $('ad-count').textContent = n ? 'יימחקו ' + n + ' הודעות מהפיד' : 'לא נבחר סימן';
+    $('ad-go').disabled = !n; $('ad-go').textContent = 'מחיקה';
+  }
+  function openAd(m){
+    if (!adminActive()){ expired(); return; }
+    var f = fpsOf(m.text);
+    if (!f.length){ toast('לא זוהו בהודעה סימנים לזיהוי'); return; }
+    adCtx = { fps: f.map(function(x){ x.on = true; return x; }) };
+    paintAd(); $('ad-modal').classList.add('open');
+  }
+  function runAd(){
+    var matches = adMatches(); if (!matches.length) return;
+    var rules = $('ad-save').checked ? adCtx.fps.filter(function(f){ return f.on; }).map(function(f){ return { t: f.t, v: f.v }; }) : [];
+    $('ad-go').disabled = true; $('ad-go').textContent = 'מוחק...';
+    adminCall({ action: 'ad', token: admin.token, rules: rules, items: matches.map(function(x){ return { ch: x.ch.tg, id: x.id }; }) }).then(function(r){
+      if (r && r.ok){
+        var gone = {}; matches.forEach(function(x){ gone[x.uid] = 1; DEL[x.uid] = 1; });
+        Object.keys(S).forEach(function(k){ S[k].all = S[k].all.filter(function(x){ return !gone[x.uid]; }); });
+        rules.forEach(function(nr){ if (!RULES.some(function(o){ return o.t === nr.t && o.v === nr.v; })) RULES.push(nr); });
+        $('ad-modal').classList.remove('open'); refreshView(); toast('נמחקו ' + matches.length + ' הודעות');
+      } else if (r && r.error === 'unauthorized'){ $('ad-modal').classList.remove('open'); expired(); }
+      else { paintAd(); toast('המחיקה נכשלה'); }
+    }).catch(function(){ paintAd(); toast('המחיקה נכשלה'); });
+  }
+  function loadRules(){
+    if (!ADMIN_API) return;
+    fetch(ADMIN_API + '?action=rules').then(function(r){ return r.json(); }).then(function(r){
+      if (!r || !r.ok || !r.rules) return;
+      var changed = JSON.stringify(r.rules) !== JSON.stringify(RULES);
+      RULES = r.rules; if (changed) refreshView();
+    }).catch(function(){});
+  }
+  $('ad-chips').onclick = function(e){ var b = e.target.closest('.ad-chip'); if (!b) return; var f = adCtx.fps[+b.getAttribute('data-i')]; f.on = !f.on; paintAd(); };
+  $('ad-cancel').onclick = function(){ $('ad-modal').classList.remove('open'); };
+  $('ad-modal').onclick = function(e){ if (e.target.id === 'ad-modal') $('ad-modal').classList.remove('open'); };
+  $('ad-go').onclick = runAd;
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') $('ad-modal').classList.remove('open'); });
+  loadRules(); setInterval(loadRules, 120000);
+
   /* ── events ── */
   function refresh(){ shown = PAGE; render(); jump(false); }
   if ($('q')) $('q').addEventListener('input', function(){
@@ -1023,6 +1156,7 @@ body.has-side #channels{ background:var(--card-bg); -webkit-backdrop-filter:none
     var uid = btn.closest('.msg-card').getAttribute('data-id');
     var m = all.find(function(x){ return x.uid === uid; }); if (!m) return;
     if (btn.getAttribute('data-act') === 'del'){ deleteMsg(m); return; }
+    if (btn.getAttribute('data-act') === 'ad'){ openAd(m); return; }
     if (btn.getAttribute('data-act') === 'link')
       copyTo(btn, location.href.split('#')[0] + '#' + m.ch.key + '/msg-' + m.id, 'קישור להודעה הועתק', ICON.link);
     else
